@@ -49,3 +49,14 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return f"Recommendations for {self.user.username}"
+
+
+
+class ProductVisit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    visit_count = models.PositiveIntegerField(default=0)
+    last_visited = models.DateTimeField(auto_now=True)  # Tracks the last visit time
+
+    def __str__(self):
+        return f"{self.user.username} visited {self.product.name} {self.visit_count} times"

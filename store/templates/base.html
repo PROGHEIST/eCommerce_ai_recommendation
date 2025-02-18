@@ -18,6 +18,7 @@
             <nav>
                 <ul class="flex space-x-6 text-lg">
                     <li><a href="/" class="hover:text-gray-300 transition duration-300">Home</a></li>
+                    <li><a href="{% url 'recommendations' %}" class="hover:text-gray-300 transition duration-300">Recommendations</a></li>
                     <li><a href="{% url 'order_history' %}" class="hover:text-gray-300 transition duration-300">Orders</a></li>
                     <li><a href="{% url 'view_cart' %}" class="relative hover:text-gray-300 transition duration-300">
                         🛒 Cart
@@ -25,7 +26,11 @@
                             {{ cart_count }}
                         </span>
                     </a></li>
-                    <li><a href="/" class="hover:text-gray-300 transition duration-300">{{ user }}</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="#" class="hover:text-gray-300 transition duration-300">{{ user.username }}</a></li>
+                    {% else %}
+                    <li><a href="{% url 'signup' %}" class="hover:text-gray-300 transition duration-300">Sign Up</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>

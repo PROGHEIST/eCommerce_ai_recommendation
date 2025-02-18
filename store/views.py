@@ -1,10 +1,14 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from .models import Order, Product, OrderItem
+from .models import Order, Product, OrderItem, Recommendation, ProductVisit
 from .data_preprocessing import train_knn_model, recommend_products
-from .recommendation import recommend_similar_products
+from .models import Recommendation
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.utils import timezone
+from datetime import timedelta
+
+
 import urllib.parse
 import qrcode
 from io import BytesIO
@@ -20,32 +24,87 @@ from decimal import Decimal
 knn_model, user_product_matrix = train_knn_model()
 
 def homepage(request):
-    featured_products = Product.objects.all()[:8]
+    featured_products = Product.objects.all()[:8]  # Fetch featured products
+
+    recommended_products = []
+    if request.user.is_authenticated:
+        recommendation = Recommendation.objects.filter(user=request.user).first()
+        if recommendation:
+            recommended_products = recommendation.recommended_products.all()[:8]  # Fetch recommendations
+
     context = {
         'featured_products': featured_products,
+        'recommended_products': recommended_products,
         'user': request.user
     }
     return render(request, 'store/home.html', context)
 
-def user_recommendations(request, user_id):
-    recommendations = recommend_products(user_id, knn_model, user_product_matrix)
-    print(f"User {user_id} recommendations: {recommendations}")
-    recommended_products = Product.objects.filter(name__in=recommendations)
-    print(f"Filtered products: {recommended_products}")
 
-    return render(request, 'store/user_recommendations.html', {'recommended_products': recommended_products})
+def recommended_products_view(request):
+    # First, get recommendations based on the user's previous product visits
+    recommendations_based_on_visits = recommend_products_based_on_visits(request)
+    
+    # Get static recommendations (if any) from the Recommendation model
+    recommendations = Recommendation.objects.filter(user=request.user).first()
 
-def product_recommendations(request, product_id):
-    recommendations = recommend_similar_products(product_id)
-    recommended_products = Product.objects.filter(name__in=recommendations)
-    return render(request, 'store/product_recommendations.html', {'recommended_products': recommended_products})
+    recommended_products = []
+    
+    if recommendations:
+        # Fetch the recommended products associated with the recommendation
+        recommended_products += list(recommendations.recommended_products.all())
+    
+    # Now combine with the dynamic recommendations from visits (to avoid duplicates)
+    if recommendations_based_on_visits:
+        recommended_products += recommendations_based_on_visits
+
+    # Remove duplicates from the list
+    recommended_products = list(set(recommended_products))
+
+    # Optionally, filter recommended products by categories
+    ordered_categories = OrderItem.objects.filter(order__user=request.user).values_list('product__category', flat=True)
+    recommended_products = [product for product in recommended_products if product.category in ordered_categories]
+
+    # Render the recommendations page with the recommended products
+    return render(request, "recommendations.html", {"recommended_products": recommended_products})
+
+
+def recommend_products_based_on_visits(request):
+    # Get the current time and calculate the time window (e.g., 7 days ago)
+    now = timezone.now()
+    time_threshold = now - timedelta(days=7)  # 7 days ago
+    
+    # Fetch products that the user has visited more than or equal to 2 times in the last 7 days
+    visited_products = ProductVisit.objects.filter(
+        user=request.user,
+        visit_count__gte=2,  # Threshold for visits (e.g., 2 visits)
+        last_visited__gte=time_threshold  # Time frame (7 days ago)
+    )
+
+    # Get the categories of those products
+    categories = visited_products.values_list('product__category', flat=True)
+    
+    # Get all products from those categories (excluding the ones already visited)
+    recommended_products = Product.objects.filter(category__in=categories).exclude(
+        id__in=visited_products.values_list('product', flat=True))
+
+    return recommended_products
+
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    recommendations = recommend_similar_products(product_id)
-    recommended_products = Product.objects.filter(name__in=recommendations)
-
-    return render(request, 'store/product_detail.html', {'product': product, 'recommended_products': recommended_products})
+    
+    # Check if the user has already visited this product
+    product_visit, created = ProductVisit.objects.get_or_create(user=request.user, product=product)
+    
+    if created:
+        product_visit.visit_count = 1  # First visit
+    else:
+        product_visit.visit_count += 1  # Increment the visit count
+        
+    # Save the visit record
+    product_visit.save()
+    
+    return render(request, "store/product_detail.html", {"product": product})
 
 
 def user_signup(request):
@@ -158,6 +217,24 @@ def checkout(request):
         'order_id': order['id']
     })
 
+
+
+
+# Add a function to update or create recommendations based on the products ordered
+def update_recommendations(user):
+    # Fetch the products ordered by the user
+    ordered_products = OrderItem.objects.filter(order__user=user).values_list('product__name', flat=True)
+
+    # Create or get the user's recommendations
+    recommendation, created = Recommendation.objects.get_or_create(user=user)
+
+    # Add related products to the recommendation (Here, we're adding products based on name similarity for simplicity)
+    for product_name in ordered_products:
+        related_products = Product.objects.filter(name__icontains=product_name)  # You can filter based on categories, etc.
+        recommendation.recommended_products.add(*related_products)
+
+    recommendation.save()
+    
 @csrf_exempt
 def payment_success(request):
     if request.method == "POST":
@@ -198,6 +275,9 @@ def payment_success(request):
             # ✅ Clear the cart after saving the order
             request.session["cart"] = {}
 
+            # ✅ Update the user's recommendations
+            update_recommendations(user)
+
             messages.success(request, "Payment successful! Order placed.")
             return redirect("order_history")  # Redirect to order history
 
@@ -209,7 +289,7 @@ def payment_success(request):
 
 
 def order_history(request):
-    orders = Order.objects.filter(user=request.user).prefetch_related('items')
+    orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-ordered_at')
     return render(request, 'orders.html', {'orders': orders})
 
 
