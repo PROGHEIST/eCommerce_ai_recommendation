@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-800">🛒 Your Cart</h1>
+
+    {% if cart %}
+        <div class="bg-white shadow-lg rounded-lg p-6 mt-6">
+            {% for key, item in cart.items %}
+                <div class="flex items-center justify-between border-b pb-4 mb-4">
+                    <!-- Product Image -->
+                    <img src="{{ item.image }}" alt="{{ item.name }}" class="w-20 h-20 object-cover rounded-md shadow-md">
+
+                    <!-- Product Info -->
+                    <div class="flex-1 ml-4">
+                        <h2 class="text-lg font-semibold">{{ item.name }}</h2>
+                        <p class="text-gray-600">Price: <span class="font-semibold">Rs {{ item.price }}</span></p>
+                        <p class="text-gray-600">Quantity: <span class="font-semibold">{{ item.quantity }}</span></p>
+                    </div>
+
+                    <!-- Remove Button -->
+                    <a href="{% url 'remove_from_cart' key %}" class="text-red-600 hover:text-red-800 font-medium transition">
+                        ❌ Remove
+                    </a>
+                </div>
+            {% endfor %}
+            
+            <!-- Total Price & Checkout Button -->
+            <div class="mt-6 flex justify-between items-center">
+                <p class="text-2xl font-semibold">Total: Rs {{ total_price }}</p>
+                <a href="{% url 'checkout' %}" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                    ✅ Checkout
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-gray-600 mt-6 text-lg">Your cart is empty. Start shopping now! 🛍️</p>
+    {% endif %}
+</div>
+{% endblock %}
