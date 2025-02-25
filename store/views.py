@@ -20,17 +20,16 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
 
+from .recommendations import generate_recommendations
 
 knn_model, user_product_matrix = train_knn_model()
 
 def homepage(request):
-    featured_products = Product.objects.all()[:8]  # Fetch featured products
+    featured_products = Product.objects.all()  # Fetch featured products
 
     recommended_products = []
     if request.user.is_authenticated:
-        recommendation = Recommendation.objects.filter(user=request.user).first()
-        if recommendation:
-            recommended_products = recommendation.recommended_products.all()[:8]  # Fetch recommendations
+        recommended_products = generate_recommendations(request.user)[:8]  # Fetch recommendations
 
     context = {
         'featured_products': featured_products,
@@ -41,30 +40,10 @@ def homepage(request):
 
 
 def recommended_products_view(request):
-    # First, get recommendations based on the user's previous product visits
-    recommendations_based_on_visits = recommend_products_based_on_visits(request)
-    
-    # Get static recommendations (if any) from the Recommendation model
-    recommendations = Recommendation.objects.filter(user=request.user).first()
-
     recommended_products = []
-    
-    if recommendations:
-        # Fetch the recommended products associated with the recommendation
-        recommended_products += list(recommendations.recommended_products.all())
-    
-    # Now combine with the dynamic recommendations from visits (to avoid duplicates)
-    if recommendations_based_on_visits:
-        recommended_products += recommendations_based_on_visits
+    if request.user.is_authenticated:
+        recommended_products = generate_recommendations(request.user)
 
-    # Remove duplicates from the list
-    recommended_products = list(set(recommended_products))
-
-    # Optionally, filter recommended products by categories
-    ordered_categories = OrderItem.objects.filter(order__user=request.user).values_list('product__category', flat=True)
-    recommended_products = [product for product in recommended_products if product.category in ordered_categories]
-
-    # Render the recommendations page with the recommended products
     return render(request, "recommendations.html", {"recommended_products": recommended_products})
 
 
