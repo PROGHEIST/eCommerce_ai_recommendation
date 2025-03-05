@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
+
+<div class="heroContainer">
+    <div class="slogan">Your Personal Grocery Genie.</div>
+    <a href="#shop">Shop Now</a>
+</div>
+
 {% if recommended_products %}
 <section id="recommended" class="container mx-auto px-6 py-12">
     <h2 class="text-3xl font-bold text-gray-800 text-center">Recommended for You</h2>

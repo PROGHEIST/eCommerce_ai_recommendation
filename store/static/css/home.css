@@ -1,0 +1,27 @@
+.heroContainer{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+}
+.slogan{
+    font-size: 5rem;
+    font-weight: 600;
+}
+.heroContainer a{
+    background-color: black;
+    color: white;
+    font-size: 2rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    
+}
+.heroContainer i{
+    color: black;
+    font-size: 1rem;
+    margin-top: 4rem;
+    font-weight: 600;
+    transform: rotate(270deg);
+}
