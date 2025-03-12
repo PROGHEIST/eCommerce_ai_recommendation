@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Agbalumo&family=Berkshire+Swash&family=DynaPuff:wght@400..700&family=Lavishly+Yours&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+
+.heroContainer{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+}
+.slogan{
+    font-size: 5rem;
+    font-weight: 600;
+}
+.heroContainer a{
+    background-color: black;
+    color: white;
+    font-size: 2rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    
+}
+.heroContainer #image1{
+    position: absolute;
+    bottom: 20px;
+    left: -40px;
+    height: 220px;
+    width: fit-content;
+    border-radius: 10px;
+    z-index: -11;
+}
+.heroContainer #image2{
+    position: absolute;
+    top: 100px;
+    right: 40px;
+    height: 220px;
+    width: fit-content;
+    border-radius: 10px;
+}
+
+
+.heroContainer i{
+    color: black;
+    font-size: 1rem;
+    margin-top: 4rem;
+    font-weight: 600;
+    transform: rotate(270deg);
+}
+
+#recommended{
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    background-color: rgb(253, 228, 233);
+}
+
+#shop{
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    background-color: black;
+    color: white;
+}
+
+#featured{
+    font-size: 4rem;
+    font-family: "Agbalumo", system-ui;
+}
+.shopContainer0{
+    display: flex;
+}
+.shopContainer1{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    overflow-x: hidden;
+    background-color: red;
+}
+.shopContainer2{
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0, 255, 13);
+}
+.cardContainer{
+    width: 240px;
+    height: 100%;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    background-color: rgb(36, 36, 36);
+}
+.cardContainer img{
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.cardContainer h2{
+    font-weight: 600;
+    padding: 4px;
+    color: greenyellow;
+}

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import homepage, user_signup, user_login, user_logout, add_to_cart, view_cart, remove_from_cart, checkout, payment_success, order_history, recommended_products_view, product_detail
+from .views import homepage, user_signup, user_login,dashboard, user_logout,track_order,filter_products, add_to_cart, view_cart, remove_from_cart, checkout, payment_success, order_history, recommended_products_view, product_detail
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -14,9 +14,12 @@ urlpatterns = [
     path('checkout/', checkout, name='checkout'),
     path('payment-success/', payment_success, name='payment_success'),
     path("orders/", order_history, name="order_history"),
+    path("dashboard/", dashboard, name="dashboard"),
     path('signup/', user_signup, name='signup'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
+    path('track/<str:tracking_number>/', track_order, name='track_order'),
+    path('filter_products/', filter_products, name='filter_products'),
 ]
 
 if settings.DEBUG:

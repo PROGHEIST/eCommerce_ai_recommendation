@@ -1,7 +1,12 @@
 from django.contrib import admin
 from .models import Product, Order, Recommendation, OrderItem, ProductVisit
 
-admin.site.register(Order)
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'tracking_number')
+    list_filter = ('status',)
+    search_fields = ('tracking_number',)
+    
 admin.site.register(ProductVisit)
 admin.site.register(OrderItem)
 @admin.register(Product)

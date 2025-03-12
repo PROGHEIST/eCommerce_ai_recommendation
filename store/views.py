@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 import urllib.parse
 import qrcode
@@ -25,8 +26,13 @@ from .recommendations import generate_recommendations
 knn_model, user_product_matrix = train_knn_model()
 
 def homepage(request):
-    featured_products = Product.objects.all()  # Fetch featured products
-
+    category = request.GET.get('category', 'all')
+    
+    if category == 'all':
+        featured_products = Product.objects.all()
+    else:
+        featured_products = Product.objects.filter(category=category)
+    
     recommended_products = []
     if request.user.is_authenticated:
         recommended_products = generate_recommendations(request.user)[:8]  # Fetch recommendations
@@ -34,10 +40,22 @@ def homepage(request):
     context = {
         'featured_products': featured_products,
         'recommended_products': recommended_products,
-        'user': request.user
+        'user': request.user,
+        'current_category': category,
     }
     return render(request, 'store/home.html', context)
 
+
+
+def filter_products(request):
+    category = request.GET.get('category', 'all')
+    if category == 'all':
+        products = Product.objects.all()
+    else:
+        products = Product.objects.filter(category=category)
+
+    html = render_to_string('store/product_list.html', {'products': products})
+    return JsonResponse(html, safe=False)
 
 def recommended_products_view(request):
     recommended_products = []
@@ -71,19 +89,18 @@ def recommend_products_based_on_visits(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    similar_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
     
-    # Check if the user has already visited this product
     product_visit, created = ProductVisit.objects.get_or_create(user=request.user, product=product)
     
     if created:
-        product_visit.visit_count = 1  # First visit
+        product_visit.visit_count = 1 
     else:
-        product_visit.visit_count += 1  # Increment the visit count
+        product_visit.visit_count += 1
         
-    # Save the visit record
     product_visit.save()
     
-    return render(request, "store/product_detail.html", {"product": product})
+    return render(request, "store/product_detail.html", {"product": product, 'similar_products': similar_products})
 
 
 def user_signup(request):
@@ -132,23 +149,23 @@ def user_logout(request):
 
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    quantity = int(request.POST.get('quantity', 1))  # Get quantity from form, default to 1
 
     cart = request.session.get('cart', {})
 
     if str(product_id) in cart:
-        cart[str(product_id)]['quantity'] += 1
+        cart[str(product_id)]['quantity'] += quantity
     else:
         cart[str(product_id)] = {
             'name': product.name,
             'price': str(product.price),
-            'quantity': 1,
+            'quantity': quantity,
             'image': product.image.url
         }
-    
-    
+
     request.session['cart'] = cart
     request.session.modified = True 
-    
+
     messages.success(request, f"{product.name} added to cart!")
     return redirect(request.META.get('HTTP_REFERER', 'view_cart'))
 
@@ -157,6 +174,9 @@ def view_cart(request):
     total_price = sum(float(item['price']) * item['quantity'] for item in cart.values())
 
     return render(request, 'cart.html', {'cart': cart, 'total_price': total_price})
+
+
+
 
 def remove_from_cart(request, product_id):
     cart = request.session.get('cart', {})
@@ -272,3 +292,23 @@ def order_history(request):
     return render(request, 'orders.html', {'orders': orders})
 
 
+def track_order(request, tracking_number):
+    order = get_object_or_404(Order, tracking_number=tracking_number)
+    return render(request, 'track_order.html', {'order': order})
+
+def dashboard(request):
+    # Fetch the user's orders
+    orders = Order.objects.filter(user=request.user).order_by('-ordered_at')
+
+    # Fetch the user's product visits
+    product_visits = ProductVisit.objects.filter(user=request.user).order_by('-last_visited')
+
+    # Fetch the user's recommendations
+    recommendations = Recommendation.objects.filter(user=request.user).first()
+
+    context = {
+        'orders': orders,
+        'product_visits': product_visits,
+        'recommendations': recommendations.recommended_products.all() if recommendations else [],
+    }
+    return render(request, 'dashboard.html', context)

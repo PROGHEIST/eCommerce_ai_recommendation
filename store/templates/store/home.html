@@ -3,12 +3,14 @@
 {% block content %}
 
 <div class="heroContainer">
+    <img id="image1" src="{% static '/images/cart.jpg' %}" alt="cart image">
+    <img id="image2" src="{% static '/images/veges.jpg' %}" alt="vegetables image">
     <div class="slogan">Your Personal Grocery Genie.</div>
-    <a href="#shop">Shop Now</a>
+    <a id="shopnow" href="#shop">Shop Now</a>
 </div>
 
 {% if recommended_products %}
-<section id="recommended" class="container mx-auto px-6 py-12">
+<section id="recommended">
     <h2 class="text-3xl font-bold text-gray-800 text-center">Recommended for You</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
         {% for product in recommended_products %}
@@ -27,22 +29,73 @@
 {% endif %}
 
 
-<section id="shop" class="container mx-auto px-6 py-12">
-    <h2 class="text-3xl font-bold text-gray-800 text-center">Featured Products</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
-        {% for product in featured_products %}
-        <div class="bg-white shadow-md rounded-lg p-4 hover:shadow-xl transition">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-40 object-cover rounded-md">
-            <h4 class="text-lg font-semibold mt-2">{{ product.name }}</h4>
-            <p class="text-sm text-gray-600 mt-1">{{ product.description|truncatechars:50 }}</p>
-            <p class="text-md font-bold text-gray-900 mt-2">Price: Rs {{ product.price }}</p>
-            <a href="{% url 'product_detail' product.id %}" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition inline-block">
-                View Details
-            </a>
+<section id="categories" class="py-8">
+    <div class="container mx-auto text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Categories</h2>
+        <div class="flex flex-wrap justify-center space-x-4">
+            <button class="category-btn active" data-category="all">All</button>
+            <button class="category-btn" data-category="fruits">Fruits</button>
+            <button class="category-btn" data-category="vegetables">Vegetables</button>
+            <button class="category-btn" data-category="dairy">Dairy</button>
+            <button class="category-btn" data-category="beverages">Beverages</button>
+            <button class="category-btn" data-category="snacks">Snacks</button>
         </div>
-        {% endfor %}
     </div>
 </section>
 
+<section id="shop" class="py-8">
+    <div class="container mx-auto">
+        <h2 id="featured" class="text-2xl font-bold text-gray-800 mb-6 text-center">Featured Products</h2>
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in featured_products %}
+            <div class="bg-white shadow-md rounded-lg p-4 hover:shadow-xl transition">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-40 object-cover rounded-md">
+                <h4 class="text-lg text-black font-semibold mt-2">{{ product.name }}</h4>
+                <p class="text-sm text-gray-600 mt-1">{{ product.description|truncatechars:50 }}</p>
+                <p class="text-md font-bold text-gray-900 mt-2">Price: Rs {{ product.price }}</p>
+                <a href="{% url 'product_detail' product.id %}" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition inline-block">
+                    View Details
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+    $(document).ready(function() {
+        $('.category-btn').click(function() {
+            $('.category-btn').removeClass('active');
+            $(this).addClass('active');
+            var category = $(this).data('category');
+            $.ajax({
+                url: '{% url "filter_products" %}',
+                data: {
+                    'category': category
+                },
+                success: function(data) {
+                    $('#product-grid').html(data);
+                }
+            });
+        });
+    });
+</script>
+
+    <script>
+        $(document).ready(function() {
+            $('.category-btn').click(function() {
+                var category = $(this).data('category');
+                $.ajax({
+                    url: '{% url "filter_products" %}',
+                    data: {
+                        'category': category
+                    },
+                    success: function(data) {
+                        $('#product-grid').html(data);
+                    }
+                });
+            });
+        });
+    </script>
 
 {% endblock %}
