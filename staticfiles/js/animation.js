@@ -48,9 +48,39 @@ tl.from('.heroContainer i', {
 })
 
 
-var shopnow = document.getElementById('#shopnow');
+$(document).ready(function(){
+    $('#prev').click(function(){
+        gsap.to('.cardContainer', {
+            x:-100,
+            duration:1,
+            ease: 'power1.out'
+        })
+    })
+    $('#next').click(function(){
+        gsap.to('.cardContainer', {
+            x:100,
+            duration:1,
+            ease: 'power1.out'
+        })
+    })
+    $('#prev2').click(function(){
+        gsap.to('.cardContainer1', {
+            x:-100,
+            duration:1,
+            ease: 'power1.out'
+        })
+    })
+    $('#next2').click(function(){
+        gsap.to('.cardContainer1', {
+            x:100,
+            duration:1,
+            ease: 'power1.out'
+        })
+    })
+})
 
-shopnow.addEventListener('onclick', () => {
-    console.log(shopnow, 'clicked');
-    
+$(document).ready(function(){
+    $('#user').click(function(){
+      $('#panel').hide('slow');
+    })
 })

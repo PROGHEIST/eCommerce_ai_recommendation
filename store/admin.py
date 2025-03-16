@@ -11,7 +11,7 @@ admin.site.register(ProductVisit)
 admin.site.register(OrderItem)
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'stock')
+    list_display = ('name', 'category', 'market_price', 'selling_price', 'stock')
     list_filter = ('category',)
     search_fields = ('name', 'category')
     ordering = ('category', 'name')

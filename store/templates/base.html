@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Grocery Store{% endblock %}</title>
+    <title>{% block title %}Farming Grow{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -16,7 +16,7 @@
 <nav>
     <div class="logocontainer">
         <a id="logo" href="/">
-            🛍️ Grocery Store
+            🛍️ Farming Grow
         </a>
     </div>
     <div class="navlinks">
@@ -30,7 +30,7 @@
         <ul>
         
         {% if user.is_authenticated %}
-        <li><a id="user" href="#"><i class="fa-solid fa-user"></i> &nbsp; {{ user.username }}</a></li>
+        <li id="username"><a id="user" href="#"><i class="fa-solid fa-user"></i> &nbsp; {{ user.username }}</a></li>
         {% else %}
         <li><a href="{% url 'signup' %}">Sign Up</a></li>
         {% endif %}
@@ -43,6 +43,27 @@
     </ul>
     </div>
 </nav>
+
+<div id="panel" class="flex hidden flex-col items-center justify-center h-screen z-index-50 fixed top-0 left-0 w-full bg-black bg-opacity-50">
+    <div class="flex flex-col items-center justify-center bg-white p-8 shadow-lg">
+        <h1 class="text-2xl text-bold">Are you sure you want to logout?</h1>
+        <div class="flex gap-4 mt-4">
+            <a class="bg-red-600 hover:bg-red-500 transition font-bold text-white px-4 py-2 rounded-lg" href="{% url 'logout' %}">Yes</a>
+            <a class="bg-black hover:bg-slate-800 transition font-bold px-4 py-2 text-white rounded-lg" id="no-button" href="#">No</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+    $('#user').click(function(){
+      $('#panel').fadeToggle('slow');
+    })
+    $('#no-button').click(function(){
+      $('#panel').fadeToggle('slow');
+    })
+})
+</script>
 
 {% block content %}
 

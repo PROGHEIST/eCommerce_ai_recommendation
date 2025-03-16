@@ -30,15 +30,23 @@ def homepage(request):
     
     if category == 'all':
         featured_products = Product.objects.all()
+        import math
+        for items in featured_products:
+            discount_price = items.market_price - items.selling_price
+            discount_percent = math.floor((discount_price / items.market_price) * 100)
+            items.discount_percent = discount_percent
+
+
     else:
         featured_products = Product.objects.filter(category=category)
     
     recommended_products = []
     if request.user.is_authenticated:
-        recommended_products = generate_recommendations(request.user)[:8]  # Fetch recommendations
+        recommended_products = generate_recommendations(request.user)[:8] 
 
     context = {
         'featured_products': featured_products,
+        'discount_percent': discount_percent,
         'recommended_products': recommended_products,
         'user': request.user,
         'current_category': category,
@@ -93,6 +101,17 @@ def product_detail(request, product_id):
     
     product_visit, created = ProductVisit.objects.get_or_create(user=request.user, product=product)
     
+    import math
+    
+    discount_price = product.market_price - product.selling_price
+    discount_percent = math.floor((discount_price / product.market_price) * 100)
+    product.discount_percent = discount_percent
+
+    for items in similar_products:
+        discount_price = items.market_price - items.selling_price
+        discount_percent = math.floor((discount_price / items.market_price) * 100)
+        items.discount_percent = discount_percent
+
     if created:
         product_visit.visit_count = 1 
     else:
@@ -100,7 +119,13 @@ def product_detail(request, product_id):
         
     product_visit.save()
     
-    return render(request, "store/product_detail.html", {"product": product, 'similar_products': similar_products})
+    contecxt = {"product": product, 
+                'similar_products': similar_products,
+                'discount_percent': discount_percent
+                
+            }
+
+    return render(request, "store/product_detail.html", contecxt)
 
 
 def user_signup(request):
@@ -158,7 +183,7 @@ def add_to_cart(request, product_id):
     else:
         cart[str(product_id)] = {
             'name': product.name,
-            'price': str(product.price),
+            'selling_price': str(product.selling_price),
             'quantity': quantity,
             'image': product.image.url
         }
@@ -171,7 +196,7 @@ def add_to_cart(request, product_id):
 
 def view_cart(request):
     cart = request.session.get('cart', {})
-    total_price = sum(float(item['price']) * item['quantity'] for item in cart.values())
+    total_price = sum(float(item['selling_price']) * item['quantity'] for item in cart.values())
 
     return render(request, 'cart.html', {'cart': cart, 'total_price': total_price})
 
@@ -193,7 +218,7 @@ def remove_from_cart(request, product_id):
 
 def checkout(request):
     cart = request.session.get('cart', {})
-    total_price = sum(float(item['price']) * item['quantity'] for item in cart.values())
+    total_price = sum(float(item['selling_price']) * item['quantity'] for item in cart.values())
 
     if not cart:
         return render(request, 'cart.html', {"cart": cart})
@@ -219,29 +244,32 @@ def checkout(request):
 
 
 
-# Add a function to update or create recommendations based on the products ordered
 def update_recommendations(user):
-    # Fetch the products ordered by the user
     ordered_products = OrderItem.objects.filter(order__user=user).values_list('product__name', flat=True)
-
-    # Create or get the user's recommendations
     recommendation, created = Recommendation.objects.get_or_create(user=user)
 
-    # Add related products to the recommendation (Here, we're adding products based on name similarity for simplicity)
     for product_name in ordered_products:
         related_products = Product.objects.filter(name__icontains=product_name)  # You can filter based on categories, etc.
         recommendation.recommended_products.add(*related_products)
 
     recommendation.save()
-    
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Order, OrderItem, Product
+import logging
+
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def payment_success(request):
     if request.method == "POST":
         try:
             data = request.POST
-            print("Payment Success Data:", data)  # Debugging
+            print("Payment Success Data:", data)
 
-            # ✅ Retrieve cart, user, address, and phone number
             cart = request.session.get('cart', {})
             user = request.user
             address = request.POST.get("address")
@@ -251,8 +279,11 @@ def payment_success(request):
                 messages.error(request, "Cart is empty. Cannot place order.")
                 return redirect("cart")
 
-            # ✅ Create an Order object
-            total_price = sum(float(item["price"]) * item["quantity"] for item in cart.values())
+            if not address or not phone:
+                messages.error(request, "Address and phone number are required.")
+                return redirect("checkout")
+
+            total_price = sum(float(item["selling_price"]) * item["quantity"] for item in cart.values())
             order = Order.objects.create(
                 user=user,
                 total_price=total_price,
@@ -260,35 +291,42 @@ def payment_success(request):
                 phone=phone
             )
 
-            # ✅ Save each item in the OrderItem model
             for key, item in cart.items():
-                product = Product.objects.get(id=key)
+                try:
+                    product = Product.objects.get(id=key)
 
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    quantity=item["quantity"],
-                    price=float(item["price"]),
-                )
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=item["quantity"],
+                        price=float(item["selling_price"]),
+                    )
+                except Product.DoesNotExist:
+                    messages.error(request, f"Product with ID {key} not found. Please try again.")
+                    return redirect("cart")
 
-            # ✅ Clear the cart after saving the order
-            request.session["cart"] = {}
+            request.session["cart"] = {}  # Clear cart after successful order
 
-            # ✅ Update the user's recommendations
-            update_recommendations(user)
+            update_recommendations(user)  # AI-based recommendations update
 
             messages.success(request, "Payment successful! Order placed.")
-            return redirect("order_history")  # Redirect to order history
+            return redirect("order_history")
 
         except Exception as e:
-            messages.error(request, f"Error processing order: {str(e)}")
+            logger.error(f"Error processing order: {str(e)}", exc_info=True)
+            messages.error(request, "An error occurred while processing your payment. Please try again.")
             return redirect("checkout")
 
     return redirect("home")
 
 
+@login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-ordered_at')
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
     return render(request, 'orders.html', {'orders': orders})
 
 

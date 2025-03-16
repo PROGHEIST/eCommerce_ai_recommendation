@@ -49,6 +49,8 @@ INSTALLED_APPS = [
 LOGIN_REDIRECT_URL = 'home'   
 LOGOUT_REDIRECT_URL = 'login' 
 
+LOGIN_URL = 'login'   
+
 RAZORPAY_KEY_ID = "rzp_test_MwrkB8fziRJiAN"
 RAZORPAY_KEY_SECRET = "bQVSvGGCHvc8ISP0GTm5Odcs"
 
