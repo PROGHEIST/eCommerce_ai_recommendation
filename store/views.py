@@ -274,6 +274,7 @@ def payment_success(request):
             user = request.user
             address = request.POST.get("address")
             phone = request.POST.get("phone")
+            upi_id = request.POST.get("upi_id")
 
             if not cart:
                 messages.error(request, "Cart is empty. Cannot place order.")
@@ -288,7 +289,8 @@ def payment_success(request):
                 user=user,
                 total_price=total_price,
                 address=address,
-                phone=phone
+                phone=phone,
+                upi_id=upi_id
             )
 
             for key, item in cart.items():
@@ -318,6 +320,36 @@ def payment_success(request):
             return redirect("checkout")
 
     return redirect("home")
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Order
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # Restrict cancellation for "Out for Delivery" or "Delivered" status
+    if order.status in ["out_for_delivery", "delivered"]:
+        messages.error(request, "You cannot cancel an order that is Out for Delivery or Delivered.")
+        return redirect("order_history")
+
+    if request.method == "POST":
+        cancel_reason = request.POST.get("cancel_reason", "").strip()
+
+        if not cancel_reason:
+            messages.error(request, "Please provide a reason for cancellation.")
+            return redirect("cancel_order", order_id=order.id)
+
+        order.status = "cancelled"
+        order.cancel_reason = cancel_reason
+        order.save()
+
+        messages.success(request, "Your order has been cancelled successfully.")
+        return redirect("order_history")
+
+    return render(request, "cancel_order.html", {"order": order})
 
 
 @login_required

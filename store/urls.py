@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import homepage, user_signup, user_login,dashboard, user_logout,track_order,filter_products, add_to_cart, view_cart, remove_from_cart, checkout, payment_success, order_history, recommended_products_view, product_detail
+from .views import homepage, user_signup, user_login,dashboard, user_logout,cancel_order,track_order,filter_products, add_to_cart, view_cart, remove_from_cart, checkout, payment_success, order_history, recommended_products_view, product_detail
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path('logout/', user_logout, name='logout'),
     path('track/<str:tracking_number>/', track_order, name='track_order'),
     path('filter_products/', filter_products, name='filter_products'),
+    path("cancel_order/<int:order_id>/", cancel_order, name="cancel_order"),
 ]
 
 if settings.DEBUG:

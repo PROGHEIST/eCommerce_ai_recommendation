@@ -34,6 +34,7 @@ class Order(models.Model):
         ('out_for_delivery', 'Out for Delivery'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('refunded', 'Refuncded'),
     ]
      
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -44,6 +45,9 @@ class Order(models.Model):
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     tracking_number = models.CharField(max_length=15, unique=True, blank=True, null=True)
+
+    cancel_reason = models.TextField(blank=True, null=True)
+    upi_id = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Order {self.id} - {self.get_status_display()}"

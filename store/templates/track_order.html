@@ -32,11 +32,30 @@
                     </div>
                     <p class="text-blue-600 text-center mt-2">Your order has been shipped and is on its way.</p>
 
+                    {% elif order.status == "cancelled" %}
+                    
+                    <div class="flex items-center justify-center">
+                        <span class="bg-red-600 text-white px-4 py-2 rounded-full text-lg">📦 Cancelled</span>
+                    </div>
+                    <p class="text-blue-600 text-center bg-gray-200 p-4 rounded-lg text-xl mt-2">Your order has been cancelled due to <b> {{ order.cancel_reason}}</b>. we will refund you within 24 hours.</p>
+                    
+                    {% elif order.status == 'refunded' %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-red-600 text-white px-4 py-2 rounded-full text-lg">📦 Cancelled</span>
+                    </div>
+                    <p class="text-blue-600 text-center bg-gray-200 p-4 rounded-lg text-xl mt-2">Your order has been cancelled due to <b>{{ order.cancel_reason}}</b>. we will refund you within 24 hours.</p>
                 {% else %}
                     <div class="flex items-center justify-center">
                         <span class="bg-red-500 text-white px-4 py-2 rounded-full text-lg">⏳ Processing</span>
                     </div>
                     <p class="text-red-600 text-center mt-2">Your order is still being processed.</p>
+                {% endif %}
+                {% if order.status == 'cancelled' %}
+                <h3 class="text-lg font-semibold text-gray-700 mt-4">Refund Status</h3>
+                <p class="text-white text-start bg-red-600 p-4 rounded mt-2">Pending</p>
+                {% elif order.status == 'refunded' %}
+                <h3 class="text-lg font-semibold text-gray-700 mt-4">Refund Status</h3>
+                <p class="text-white bg-green-600  text-start p-4 rounded mt-2">Refunded Successfully</p>
                 {% endif %}
             </div>
         {% else %}
