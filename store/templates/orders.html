@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-4 sm:p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4 sm:mb-6">Order History</h1>
+
+        {% if orders %}
+            <div class="space-y-6">
+                {% for order in orders %}
+                <div class="border-l-4 border-blue-500 bg-gray-50 p-4 sm:p-6 rounded-lg shadow-md">
+                    <h2 class="text-base sm:text-lg font-semibold text-gray-700">Order ID: 
+                        <span class="text-blue-600">#{{ order.id }}</span>
+                    </h2>
+                    <p class="text-sm sm:text-base text-gray-600"><strong>Date:</strong> {{ order.ordered_at }}</p>
+                    <p class="text-sm sm:text-base text-gray-600"><strong>Total Price:</strong> 
+                        <span class="text-green-600 font-bold">Rs {{ order.total_price }}</span>
+                    </p>
+                    <p class="text-sm sm:text-base text-gray-600"><strong>Address:</strong> {{ order.address }}</p>
+                    <p class="text-sm sm:text-base text-gray-600"><strong>Phone:</strong> {{ order.phone }}</p>
+
+                    <!-- Order Tracking Status -->
+                    <div class="mt-4 p-3 rounded-lg text-white text-center text-base font-semibold
+                        {% if order.status == 'delivered' %} bg-green-500
+                        {% elif order.status == 'out_for_delivery' %} bg-orange-500
+                        {% elif order.status == 'shipped' %} bg-blue-500
+                        {% elif order.status == 'cancelled' %} bg-red-600
+                        {% elif order.status == 'refunded' %} bg-purple-600
+                        {% else %} bg-red-500 {% endif %}">
+                        {% if order.status == "delivered" %}
+                            🎉 Delivered
+                        {% elif order.status == "out_for_delivery" %}
+                            🚚 Out for Delivery
+                        {% elif order.status == "shipped" %}
+                            📦 Shipped
+                        {% elif order.status == "cancelled" %}
+                            📦 Cancelled due to {{ order.cancel_reason }}
+                        {% elif order.status == "refunded" %}
+                            📦 Order Cancelled & Money Refunded Successfully
+                        {% else %}
+                            ⏳ Processing
+                        {% endif %}
+                    </div>
+
+                    <!-- Items Ordered -->
+                    <h3 class="mt-4 font-bold text-gray-700">Items Ordered:</h3>
+                    <ul class="mt-2 space-y-2">
+                        {% for item in order.items.all %}
+                            <li class="flex flex-col sm:flex-row sm:justify-between bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                                <span class="text-gray-700 font-medium">
+                                    {{ item.quantity }} x {{ item.product.name }}
+                                </span>
+                                <span class="text-gray-800 font-semibold mt-1 sm:mt-0">Rs {{ item.price }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <p class="mt-3 text-sm sm:text-base text-gray-600"><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
+                        <a href="{% url 'track_order' tracking_number=order.tracking_number %}" 
+                           class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 text-center">
+                            📍 Track Order
+                        </a>
+
+                        {% if order.status in "out_for_delivery cancelled refunded" %}
+                            <button disabled class="bg-gray-400 text-white px-4 py-2 rounded-lg shadow-md cursor-not-allowed text-center">
+                                Cannot Cancel
+                            </button>
+                        {% else %}
+                            <a href="{% url 'cancel_order' order.id %}" 
+                               class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 text-center">
+                                Cancel Order
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600 text-center mt-6">No orders found.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold text-gray-800">Payment Successful!</h1>
+
+    <p class="mt-4 text-lg">Thank you for your purchase. Your transaction has been successfully processed.</p>
+
+    <div class="mt-6">
+        <a href="{% url 'checkout' %}" class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+            Go to Cart
+        </a>
+    </div>
+</div>
+{% endblock %}

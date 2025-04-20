@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mx-auto px-6 py-12">
+    <h2 class="text-3xl font-bold text-gray-800 text-center">Track Your Order</h2>
+
+    <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-6">
+        {% if order %}
+            <div class="text-center">
+                <p class="text-lg font-semibold text-gray-700">📦 <strong>Order ID:</strong> {{ order.id }}</p>
+                <p class="text-lg font-semibold text-gray-700">🔢 <strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+                <p class="text-lg font-semibold text-gray-700">📅 <strong>Order Date:</strong> {{ order.ordered_at }}</p>
+            </div>
+
+            <!-- Status Section -->
+            <div class="mt-6">
+                {% if order.status == "delivered" %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-green-500 text-white px-4 py-2 rounded-full text-lg">🎉 Delivered</span>
+                    </div>
+                    <p class="text-green-600 text-center mt-2">Your order has been delivered successfully!</p>
+
+                {% elif order.status == "out_for_delivery" %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-orange-500 text-white px-4 py-2 rounded-full text-lg">🚚 Out for Delivery</span>
+                    </div>
+                    <p class="text-orange-600 text-center mt-2">Hang tight! Your order is on the way.</p>
+
+                {% elif order.status == "shipped" %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-blue-500 text-white px-4 py-2 rounded-full text-lg">📦 Shipped</span>
+                    </div>
+                    <p class="text-blue-600 text-center mt-2">Your order has been shipped and is on its way.</p>
+
+                    {% elif order.status == "cancelled" %}
+                    
+                    <div class="flex items-center justify-center">
+                        <span class="bg-red-600 text-white px-4 py-2 rounded-full text-lg">📦 Cancelled</span>
+                    </div>
+                    <p class="text-blue-600 text-center bg-gray-200 p-4 rounded-lg text-xl mt-2">Your order has been cancelled due to <b> {{ order.cancel_reason}}</b>. we will refund you within 24 hours.</p>
+                    
+                    {% elif order.status == 'refunded' %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-red-600 text-white px-4 py-2 rounded-full text-lg">📦 Cancelled</span>
+                    </div>
+                    <p class="text-blue-600 text-center bg-gray-200 p-4 rounded-lg text-xl mt-2">Your order has been cancelled due to <b>{{ order.cancel_reason}}</b>. we will refund you within 24 hours.</p>
+                {% else %}
+                    <div class="flex items-center justify-center">
+                        <span class="bg-red-500 text-white px-4 py-2 rounded-full text-lg">⏳ Processing</span>
+                    </div>
+                    <p class="text-red-600 text-center mt-2">Your order is still being processed.</p>
+                {% endif %}
+                {% if order.status == 'cancelled' %}
+                <h3 class="text-lg font-semibold text-gray-700 mt-4">Refund Status</h3>
+                <p class="text-white text-start bg-red-600 p-4 rounded mt-2">Pending</p>
+                {% elif order.status == 'refunded' %}
+                <h3 class="text-lg font-semibold text-gray-700 mt-4">Refund Status</h3>
+                <p class="text-white bg-green-600  text-start p-4 rounded mt-2">Refunded Successfully</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="text-center">
+                <p class="text-red-600 text-lg font-semibold">❌ Invalid tracking number. Please check and try again.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

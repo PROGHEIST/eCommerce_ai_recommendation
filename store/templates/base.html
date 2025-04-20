@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Farming Grow{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="{% static '/css/style.css' %}">
+    <link rel="stylesheet" href="{% static '/css/home.css' %}">
+</head>
+<body>
+
+<nav>
+    <div class="logocontainer">
+        <a id="logo" href="/">
+            🛍️ Farming Grow
+        </a>
+    </div>
+    <div class="navlinks">
+        <ul class="navlinks-animation">
+            <li class="links"><a href="/">Home</a></li>
+            <li class="links"><a href="{% url 'recommendations' %}">Recommendations</a></li>
+            <li class="links"><a href="{% url 'order_history' %}">Orders</a></li>
+                     
+        </ul>
+    </div>
+    <div class="search-box hidden px-4">
+        <input type="text" id="search" placeholder="Search products..." class="border p-2 rounded-lg w-64">
+    </div> 
+    {% if user.is_authenticated %}
+    <i id="search1" class="fa-solid fa-search"></i>
+    {% endif %}
+    <div class="signupContainer">
+        <ul>
+        {% if user.is_authenticated %}
+        <li id="username"><a id="user" href="#"><i class="fa-solid fa-user"></i> &nbsp; {{ user.username }}</a></li>
+        {% else %}
+        <li><a href="{% url 'signup' %}">Sign Up</a></li>
+        {% endif %}
+        <li><a href="{% url 'view_cart' %}">
+            <i class="fa-solid fa-cart-shopping"></i> Cart
+            <span id="cart-count">
+                {{ cart_count }}
+            </span>
+        </a></li>
+    </ul>
+    </div>
+    <div class="menubar">
+        {% if user.is_authenticated %}
+        <i id="search2" class="fa-solid fa-search"></i>
+        {% endif %}
+        <i class="fa-solid fa-bars"></i>
+        <i class="fa-solid fa-close"></i>
+    </div>
+</nav>
+
+<div id="panel" class="flex hidden flex-col items-center justify-center h-screen z-index-50 fixed top-0 left-0 w-full bg-black bg-opacity-50">
+    <div class="flex flex-col items-center justify-center bg-white p-8 shadow-lg">
+        <h1 class="text-2xl text-bold">Are you sure you want to logout?</h1>
+        <div class="flex gap-4 mt-4">
+            <a class="bg-red-600 hover:bg-red-500 transition font-bold text-white px-4 py-2 rounded-lg" href="{% url 'logout' %}">Yes</a>
+            <a class="bg-black hover:bg-slate-800 transition font-bold px-4 py-2 text-white rounded-lg" id="no-button" href="#">No</a>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="user-details">
+        {% if user.is_authenticated %}
+        <li id="username"><a id="user" href="#"><i class="fa-solid fa-user"></i> &nbsp; {{ user.username }}</a></li>
+        {% else %}
+        <li><a href="{% url 'homepage' %}">Farming Grow</a></li>
+        {% endif %}
+    </div>
+    <div class="side-navs">
+        <ul>
+                <li class="links"><a href="/">Home</a></li>
+                <li class="links"><a href="{% url 'recommendations' %}">Recommendations</a></li>
+                <li class="links"><a href="{% url 'order_history' %}">Orders</a></li>
+                <li class="links"><a href="{% url 'login' %}">Login</a></li>
+                <li class="links"><a href="{% url 'signup' %}">Sign Up</a></li>
+                {% if user.is_authenticated %}
+                <li class="links"><a href="{% url 'logout' %}">Logout</a></li>
+                {% endif %}
+        </ul>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+    $('#user').click(function(){
+      $('#panel').fadeToggle('slow');
+    })
+    $('#no-button').click(function(){
+      $('#panel').fadeToggle('slow');
+    })
+})
+</script>
+
+<script>
+    $(function() {
+        $("#search").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "{% url 'search_suggestions' %}",
+                    dataType: "json",
+                    data: {
+                        term: request.term
+                    },
+                    success: function(data) {
+                        response(data);
+                    }
+                });
+            },
+            minLength: 2,
+            select: function(event, ui) {
+                // Redirect to product detail page
+                window.location.href = "/product/" + ui.item.id + "/";
+            }
+        });
+    });
+</script>
+
+
+{% block content %}
+
+{% endblock %}
+<br>
+
+<div class="quick-access">
+    <div class="shortcuts">
+        <a href="{% url 'homepage' %}">
+        <i class="fa-solid fa-house"></i>
+    </a>
+    </div>
+    <div class="shortcuts">
+        <a href="{% url 'order_history' %}">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+    </a>
+    </div>
+    <div class="shortcuts">
+        {% if user.is_authenticated %}
+        <button id="cart-shortcut" type="button" class="relative inline-flex items-center p-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none">
+            <a href="{% url 'view_cart' %}">
+                <i class="fa-solid fa-cart-shopping"></i>
+            <span class="sr-only">Cart</span>
+              <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-slate-800 border-2 border-white rounded-full -top-2 -end-2 dark:border-white">{{ cart_count }}</div>
+            </a>
+            </button>
+            {% else %}
+            <button id="cart-shortcut" type="button" class="relative inline-flex items-center p-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none">
+                <a href="{% url 'login' %}">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                <span class="sr-only">Cart</span>
+                  <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-slate-800 border-2 border-white rounded-full -top-2 -end-2 dark:border-white">{{ cart_count }}</div>
+                </a>
+                </button>
+                {% endif %}
+    </div>    
+</div>
+
+
+    
+
+<footer class="bg-gray-100 text-gray-800 py-8">
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <div class="footer-elements">
+            <h1 class="text-xl font-semibold mb-2">About</h1>
+            <p class="text-sm leading-relaxed">
+                A grocery ecommerce website is an online platform that allows customers to browse, select, and purchase groceries from the comfort of their homes, with the option to have their items delivered directly to their doorstep or picked up in-store.
+            </p>
+        </div>
+        
+        <div class="footer-elements">
+            <h1 class="text-xl font-semibold mb-2">Important Links</h1>
+            <ul class="space-y-2">
+                <li><a href="/" class="text-blue-600 hover:underline">Home</a></li>
+                <li><a href="{% url 'recommendations' %}" class="text-blue-600 hover:underline">Recommendations</a></li>
+                <li><a href="{% url 'order_history' %}" class="text-blue-600 hover:underline">Orders</a></li>
+                <li><a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login</a></li>
+                <li><a href="{% url 'signup' %}" class="text-blue-600 hover:underline">Signup</a></li>
+            </ul>
+        </div>
+    
+        <div class="footer-elements">
+            <h1 class="text-xl font-semibold mb-2">Follow Us</h1>
+            <ul class="space-y-2">
+                <li><a href="https://www.instagram.com/codingprogheist?igsh=eHJ6cXFpanBpczY=" class="text-blue-600 hover:underline">Instagram</a></li>
+                <li><a href="https://github.com/PROGHEIST" class="text-blue-600 hover:underline">GitHub</a></li>
+                <li><a href="{% url 'contact' %}" class="text-blue-600 hover:underline">Contact Us</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-8 text-center text-sm text-gray-500 border-t pt-4">
+        © 2025 Grocery eCommerce Website. All rights reserved.
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/plugins/ScrollToPlugin.min.js" integrity="sha512-MNrfXoNkJk0uGej2yCbkXsZBIokOU5Fdjiv6ThF3UCH2zbkeMBtL6uHbH+1sdY/58BOh4bRKxBbyFPcKk8I1KA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static '/js/animation.js' %}"></script>
+</body>
+</html>

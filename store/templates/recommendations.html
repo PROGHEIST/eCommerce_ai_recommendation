@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if recommended_products %}
+<section id="recommended" class="px-2 py-6">
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Recommended for You</h2>
+    <div id="recommend-container" class="grid grid-cols-2 lg:grid-cols-4 gap-1">
+        {% for product in recommended_products %}
+        <div id="cards" class="bg-white shadow-md rounded-lg p-3 hover:shadow-xl transition">
+            <img id="card-image" src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-36 object-cover rounded-md">
+            <h4 id="card-name" class="text-base font-semibold mt-2">{{ product.name }}</h4>
+            <p id="card-desc" class="text-sm text-gray-600 mt-1">{{ product.description|truncatechars:50 }}</p>
+            <p id="card-price" class="text-sm font-bold text-gray-600 mt-2">Rs <strike>{{ product.market_price }}</strike> &nbsp; <mark>{{ product.selling_price }}</mark></p>
+            <a id="card-button" href="{% url 'product_detail' product.id %}" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition inline-block">
+                View Details
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+    {% else %}
+        <p class="text-center text-gray-600">No recommendations available based on your visits. Start exploring products, and we'll recommend items you may like!</p>
+    {% endif %}
+</div>
+{% endblock %}

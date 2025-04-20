@@ -1,0 +1,77 @@
+<!-- payment.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container mx-auto px-6 py-12">
+    <h2 class="text-3xl font-bold text-gray-800">Complete Payment</h2>
+    <p>Total: ₹{{ total_price|divisibleby:100 }}</p>  <!-- This just displays the total in rupees -->
+
+    <form action="/payment/verify/" method="POST">
+        {% csrf_token %}
+        <script
+            src="https://checkout.razorpay.com/v1/checkout.js"
+            data-key="{{ razorpay_api_key }}"
+            data-amount="{{ total_price }}"
+            data-currency="INR"
+            data-order_id="{{ razorpay_order_id }}"
+            data-buttontext="Pay Now"
+            data-name="Your Store"
+            data-description="Order Payment"
+            data-image="https://example.com/your-logo.png"
+            data-prefill.name="{{ user.username }}"
+            data-prefill.email="{{ user.email }}">
+        </script>
+    </form>
+
+    <button id="pay-now-button">Pay Now</button>
+
+    <script>
+        document.getElementById('pay-now-button').onclick = function(e){
+            var options = {
+                "key": "{{ razorpay_api_key }}",
+                "amount": "{{ total_price }}",
+                "currency": "INR",
+                "order_id": "{{ razorpay_order_id }}",
+                "name": "Your Store",
+                "description": "Order Payment",
+                "image": "https://example.com/your-logo.png",
+                "handler": function (response){
+                    var order_id = response.razorpay_order_id;
+                    var payment_id = response.razorpay_payment_id;
+                    var signature = response.razorpay_signature;
+
+                    // Send the payment details to the server via POST
+                    var form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = "{% url 'payment_success' %}";
+
+                    var orderInput = document.createElement("input");
+                    orderInput.type = "hidden";
+                    orderInput.name = "razorpay_order_id";
+                    orderInput.value = order_id;
+                    form.appendChild(orderInput);
+
+                    var paymentInput = document.createElement("input");
+                    paymentInput.type = "hidden";
+                    paymentInput.name = "razorpay_payment_id";
+                    paymentInput.value = payment_id;
+                    form.appendChild(paymentInput);
+
+                    var signatureInput = document.createElement("input");
+                    signatureInput.type = "hidden";
+                    signatureInput.name = "razorpay_signature";
+                    signatureInput.value = signature;
+                    form.appendChild(signatureInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            e.preventDefault();
+        }
+    </script>
+</section>
+{% endblock %}

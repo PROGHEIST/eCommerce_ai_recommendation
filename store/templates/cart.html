@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-800">🛒 Your Cart</h1>
+
+    {% if cart %}
+        <div class="bg-white shadow-lg rounded-lg p-6 mt-6">
+            {% for key, item in cart.items %}
+                <div id="cart-cards" class="flex items-center justify-between border-b pb-4 mb-4">
+                    <!-- Product Image -->
+                    <img src="{{ item.image }}" alt="{{ item.name }}" class="w-20 h-20 object-cover rounded-md shadow-md">
+
+                    <!-- Product Info -->
+                    <div class="flex-1 ml-4">
+                        <h2 id="item-name" class="text-lg font-semibold">{{ item.name }}</h2>
+                        <p class="text-gray-600">Price: <span class="font-semibold">Rs {{ item.selling_price }}</span></p>
+                        <p class="text-gray-600">Quantity: <span class="font-semibold">{{ item.quantity }}</span></p>
+                    </div>
+                    
+                    <!-- Remove Button -->
+                    <a id="remove-btn" href="{% url 'remove_from_cart' key %}" class="text-red-600 hover:text-red-800 font-medium transition">
+                        ❌ Remove
+                    </a>
+                </div>
+            {% endfor %}
+
+            
+            
+            <!-- Total Price & Checkout Button -->
+            <div class="mt-6 flex justify-between items-center">
+                <p id="total_price" class="text-2xl font-semibold">Total: Rs {{ total_price }}</p>
+                <a id="checkout" href="{% url 'checkout' %}" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                    ✅ Checkout
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-gray-600 mt-6 text-lg">Your cart is empty. Start shopping now! 🛍️</p>
+    {% endif %}
+</div>
+
+
+{% if recently_visited %}
+<section id="recently" class="px-2 py-6">
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Recently Viewed Groceries</h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-1">
+        {% for product in recently_visited %}
+        <div class="bg-white shadow-md rounded-lg p-3 hover:shadow-xl transition">
+            <img src="{{ product.product.image.url }}" alt="{{ product.product.name }}" class="w-full h-36 object-cover rounded-md">
+            <h4 class="text-base font-semibold mt-2">{{ product.product.name }}</h4>
+            <p class="text-sm text-gray-600 mt-1">{{ product.product.description|truncatechars:50 }}</p>
+            <p class="text-sm font-bold text-gray-600 mt-2">
+                Rs <strike>{{ product.product.market_price }}</strike> &nbsp;
+                <mark>{{ product.product.selling_price }}</mark>
+            </p>
+            <a href="{% url 'product_detail' product.product.id %}" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition inline-block">
+                View Details
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+
+{% endblock %}
